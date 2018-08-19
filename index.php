@@ -3,6 +3,11 @@ session_start();
 
 require('database.php');
 
+if (isset($_POST['logout']) && $_POST['logout'] === 'true'){
+  $_SESSION['login'] = null;
+  $_SESSION['password'] = null;
+}
+
 $incorrect_login_input = false;
 
 if ($_SESSION['login'] == null || $_SESSION['password'] == null) {
