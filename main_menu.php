@@ -1,6 +1,7 @@
 <?php
+
+    require_once("battle_util.php");
     if (!last_battle_is_over($_SESSION['login'])){
-      echo "kek";
       header("Location: battle.php");
       die();
     }
@@ -24,8 +25,9 @@
 
     <br>
 
-
-
-
-  </body>
+    <form  action="battle.php" method="post">
+      <input type="hidden" name="start_battle" value="true">
+      <input type="submit" value="BATTLE">
+    </form>
+</body>
 </html>

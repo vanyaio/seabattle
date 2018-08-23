@@ -1,7 +1,8 @@
 <?php
 session_start();
 
-require('database.php');
+require_once('database.php');
+require_once('util.php');
 
 if (isset($_POST['logout']) && $_POST['logout'] === 'true'){
   $_SESSION['login'] = null;
@@ -18,23 +19,22 @@ if ($_SESSION['login'] == null || $_SESSION['password'] == null) {
     if (check_login_password($login, $password)){
       $_SESSION['login'] = $login;
       $_SESSION['password'] = $password;
-      require("main_menu.php");
+      require_once("main_menu.php");
     }
     else {
       $incorrect_login_input = true;
-      require("login_page.php");
+      require_once("login_page.php");
     }
   }
   else{
-    require("login_page.php");
+    require_once("login_page.php");
   }
 }
 else {
   if (check_login_password($_SESSION['login'], $_SESSION['password'])){
-    require('main_menu.php');
+    require_once('main_menu.php');
   }
   else {
-    require("login_page.php");
+    require_once("login_page.php");
   }
 }
-?>
