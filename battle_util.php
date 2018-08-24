@@ -133,9 +133,10 @@ function set_new_move()
   global $login;
   global $id;
   global $db;
+  global $time_format;
 
   $time_now = date($time_format, time());
-  $query = "update strikes_new_moves set new_move = $time_now where id = $id";
+  $query = "update strikes_new_moves set new_move = '$time_now' where id = $id";
   $statement = $db->prepare($query);
   $statement->execute();
   $statement->closeCursor();
@@ -163,6 +164,31 @@ function set_left_by_both(){
   $statement->closeCursor();
 }
 
+function get_both_set_time(){
+  global $login;
+  global $id;
+  global $db;
+
+  $query = "select both_set_time from both_set_time where id = $id";
+  $statement = $db->prepare($query);
+  $statement->execute();
+
+  $res = ($statement->fetch())['both_set_time'];
+  return strtotime($res);
+}
+
+function set_both_set_time(){
+  global $login;
+  global $id;
+  global $db;
+  global $time_format;
+
+  $time_now = date($time_format, time());
+  $query = "update both_set_time set both_set_time = '$time_now' where id = $id";
+  $statement = $db->prepare($query);
+  $statement->execute();
+  $statement->closeCursor();
+}
 //temp
 
 
@@ -208,6 +234,11 @@ function start_battle(){
   $statement5 = $db->prepare($query5);
   $statement5->execute();
   $statement5->closeCursor();
+
+  $query6 = "insert into both_set_time (id) values ($id)";
+  $statement6 = $db->prepare($query6);
+  $statement6->execute();
+  $statement6->closeCursor();
 }
 
 function strike(){
@@ -218,17 +249,17 @@ function strike(){
   global $db;
 
   $time_now = date($time_format, time());
-  $query = "update strikes_new_moves set last_strike = $time_now where id = $id";
+  $query = "update strikes_new_moves set last_strike = '$time_now' where id = $id";
   $statement = $db->prepare($query);
   $statement->execute();
   $statement->closeCursor();
 
-  $query = "insert into curr_move values ($id, $enemy_login)";
+  $query = "update curr_move set login = '$enemy_login' where id = $id";
   $statement = $db->prepare($query);
   $statement->execute();
   $statement->closeCursor();
 
-  if (mt_rand(0, 6) == 2)
+  if (true)//)
   {
     set_winner();
     return true;
@@ -242,6 +273,9 @@ function set_position($position){
   global $id;
   global $db;
 
+  if (!isset($position))
+    return false;
+
   $str = '';
   for ($i = 0; $i < 100; $i++)
     $str = $str . '0';
@@ -251,4 +285,38 @@ function set_position($position){
   $statement = $db->prepare($query);
   $statement->execute();
   $statement->closeCursor();
+
+  return true;
 }
+// a
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+// b

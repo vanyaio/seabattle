@@ -18,6 +18,8 @@ if (last_battle_is_over($_SESSION['login'])){
     die();
   }
   else{
+    if (isset($_POST['battle_page_loaded']))
+      send_response(array("finished" => true));
     header("Location: index.php");
     die();
   }
@@ -57,19 +59,19 @@ if ($last_strike != false)
 
 $curr_move = get_move($id);
 
+$both_set_time = get_both_set_time();
 
-
-$set_time = 20;
-$req_time = 5;
-$accept_time = 6;
-$move_time = 20;
+$set_time = 120;
+$req_time = 120;
+$accept_time = 120;
+$move_time = 120;
 //need to make func set_left_by_both
 if (!$both_set){
   if (!$login_isset && (time() > ($battle_start + $set_time))) {
       if (time() > ($battle_start + $set_time + $req_time)) {
         //left_by_both = true;
         set_left_by_both();
-        send_response(array("left_by_both" => true));
+        send_response(array("left_by_both" => true, "line" => 74));
       }
       else {
         //in_progress;
@@ -80,7 +82,7 @@ if (!$both_set){
   if ($login_isset && (time() > ($battle_start + $set_time + $req_time))){
     //left_by_both = true;
     set_left_by_both();
-    send_response(array("left_by_both" => true));
+    send_response(array("left_by_both" => true, "line" => 85));
   }
 }
 else{
@@ -88,7 +90,7 @@ else{
     if (time() > ($both_set_time + $accept_time + $req_time)){
       //left_by_both = true;
       set_left_by_both();
-      send_response(array("left_by_both" => true));
+      send_response(array("left_by_both" => true, "line" => 93));
     }
     if ($curr_move == $login && (time() > ($both_set_time + $accept_time)))
     {
@@ -104,18 +106,15 @@ else{
         if (time() > ($new_move + $move_time + $req_time)){
           //left_by_both;
           set_left_by_both();
-          send_response(array("left_by_both" => true));
+          send_response(array("left_by_both" => true, "line" => 109));
         }
-        else
-          //in_progress;
-          send_response(array("in_progress" => true));
       }
       else
       {
-        if (time() > ($new_step_time + $move_time + $req_time)){
+        if (time() > ($new_move + $move_time + $req_time)){
           //left_by_both;
           set_left_by_both();
-          send_response(array("left_by_both" => true));
+          send_response(array("left_by_both" => true, "line" => 120));
         }
       }
     }
@@ -125,7 +124,7 @@ else{
       if (time() > ($last_strike + $accept_time + $req_time)){
         //left_by_both;
         set_left_by_both();
-        send_response(array("left_by_both" => true));
+        send_response(array("left_by_both" => true, "line" => 130));
       }
       if ($curr_move == $login)
       {
@@ -145,15 +144,18 @@ if ($both_set) {
   {
     if ($curr_move == $login)
     {
-      set_new_move();
       // status;
       // move, your, positions, timer:3;
-      $timer = $new_move + $move_time - time();
-      send_response(array("stage" => "move", "my_move" => true, "timer" => $timer));
+      if (isset($_POST['get_status'])){
+        set_new_move();
+        $new_move = strtotime(get_ls_nm($id)["new_move"]);
+        $timer = $new_move + $move_time - time();
+        send_response(array("stage" => "move", "my_move" => true, "timer" => $timer));
+      }
     }
     else
     {
-      if (time() > ($both_set + $accept_time))
+      if (time() > ($both_set_time + $accept_time))
       {
         set_winner();
         //status;
@@ -163,7 +165,7 @@ if ($both_set) {
       {
         // status;
         // 2, 0, poses, 2a
-        $timer = $both_set + $accept_time - time();
+        $timer = $both_set_time + $accept_time - time();
         send_response(array("stage" => "accept new move", "my_move" => false, "timer" => $timer));
       }
     }
@@ -174,11 +176,14 @@ if ($both_set) {
     {
       if ($curr_move == $login)
       {
-        set_new_move();
         // status ;
         // 3, 1, poses, 3
-        $timer = $new_move + $move_time - time();
-        send_response(array("stage" => "move", "my_move" => true, "timer" => $timer));
+        if (isset($_POST['get_status'])){
+          set_new_move();
+          $new_move = strtotime(get_ls_nm($id)["new_move"]);
+          $timer = $new_move + $move_time - time();//get_new_move
+          send_response(array("stage" => "move", "my_move" => true, "timer" => $timer));
+        }
       }
       else
       {
@@ -187,6 +192,11 @@ if ($both_set) {
           set_winner();
           //status;
           send_response(array("winner" => $login));
+        }
+        else
+        {
+          $timer = $last_strike + $accept_time - time();
+          send_response(array("stage" => "accept new move", "my_move" => false, "timer" => $timer));
         }
       }
     }
@@ -199,16 +209,24 @@ if ($both_set) {
         //if strike finish game?
         // status;
         // 2, 0, poses, 2b
-        if (strike())
-        {
-          set_winner();
-          //status;
-          send_response(array("winner" => $login));
+        if (isset($_POST['strike'])){
+          if (strike())
+          {
+            set_winner();
+            //status;
+            send_response(array("winner" => $login));
+          }
+          else
+          {
+            $last_strike = strtotime(get_ls_nm($id)["last_strike"]);
+            $timer = $last_strike + $accept_time - time();
+            send_response(array("stage" => "accept new move", "my_move" => false, "timer" => $timer));
+          }
         }
         else
         {
-          $timer = $last_strike + $accept_time - time();
-          send_response(array("stage" => "accept new move", "my_move" => false, "timer" => $timer));
+          $timer = $new_move + $move_time - time();
+          send_response(array("stage" => "move", "my_move" => true, "timer" => $timer));
         }
       }
       else
@@ -218,6 +236,11 @@ if ($both_set) {
           set_winner();
           //status;
           send_response(array("winner" => $login));
+        }
+        else
+        {
+          $timer = $new_move + $move_time - time();
+          send_response(array("stage" => "move", "my_move" => false, "timer" => $timer));
         }
       }
     }
@@ -238,9 +261,47 @@ else {
   }
   else
   {
-    set_position($_POST["set_position"]);
-    $timer = $battle_start + $set_time - time();
-    $my_board = get_login_board($login, $id);
-    send_response(array("stage" => "set position", "my_move" => false, "timer" => $timer));
+    if (set_position($_POST["set_position"]))
+    {
+      $timer = $battle_start + $set_time - time();
+      $my_board = get_login_board($login, $id);
+      if ($enemy_isset)
+        set_both_set_time();
+      send_response(array("stage" => "set position", "my_move" => false, "timer" => $timer));
+    }
+    else
+    {
+      $timer = $battle_start + $set_time - time();
+      $my_board = get_login_board($login, $id);
+      send_response(array("stage" => "set position", "my_move" => false, "timer" => $timer));
+    }
   }
 }
+// a
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+// b
