@@ -67,7 +67,7 @@ function get_enemy_login($login){
   return $enemy;
 }
 
-function get_login_board($login, $id)
+function get_login_board($login, $id)//*
 {
   global $db;
 
@@ -79,7 +79,18 @@ function get_login_board($login, $id)
 
   return $statement->fetch()['board'];
 }
+function get_positions_str($login, $id)//*
+{
+  global $db;
 
+  $query = "SELECT position from battle_positions where login = :login and id = :id";
+  $statement = $db->prepare($query);
+  $statement->bindValue(':login', $login);
+  $statement->bindValue(':id', $id);
+  $statement->execute();
+
+  return $statement->fetch()['position'];
+}
 function get_ls_nm($id)
 {
   global $db;
@@ -122,8 +133,8 @@ function battle_start($id){
 function send_response($response_array){
   global $my_board;
   global $enemy_board;
-  $response_array["my_board"] = $my_board;
-  $response_array["enemy_board"] = $enemy_board;
+  $response_array["my_board"] = $my_board;//get my board()
+  $response_array["enemy_board"] = $enemy_board;//same
   echo json_encode($response_array);
   die();
 }
@@ -192,7 +203,7 @@ function set_both_set_time(){
 //temp
 
 
-function start_battle(){
+function start_battle(){//ADD POSITIONS_STR
   global $db;
   global $time_format;
 

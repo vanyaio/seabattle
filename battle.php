@@ -38,6 +38,9 @@ $enemy_login = get_enemy_login($login);
 $login_isset = true;
 $enemy_isset = true;
 $my_board = get_login_board($login, $id);
+
+$my_position_str = json_decode(get_positions_str($login, $id));//TRUE ASSOC??
+
 $enemy_board = get_login_board($enemy_login, $id);
 if (get_login_board($login, $id) == null)
   $login_isset = false;
@@ -138,6 +141,9 @@ else{
 
 
 
+require_once('battleClasses.php');
+$boardController = new BoardContoller();
+$strikeMoveController = new StrikeMoveController();
 
 if ($both_set) {
   if ($new_move == false)
