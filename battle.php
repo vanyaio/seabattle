@@ -39,7 +39,8 @@ $login_isset = true;
 $enemy_isset = true;
 $my_board = get_login_board($login, $id);
 
-$my_position_str = json_decode(get_positions_str($login, $id));//TRUE ASSOC??
+$my_position_str = json_decode(get_positions_str($login, $id), true);//TRUE ASSOC??
+$enemy_position_str = json_decode(get_positions_str($enemy_login, $id), true);
 
 $enemy_board = get_login_board($enemy_login, $id);
 if (get_login_board($login, $id) == null)
@@ -67,7 +68,7 @@ $both_set_time = get_both_set_time();
 $set_time = 120;
 $req_time = 120;
 $accept_time = 120;
-$move_time = 120;
+$move_time = 120 * 5;
 //need to make func set_left_by_both
 if (!$both_set){
   if (!$login_isset && (time() > ($battle_start + $set_time))) {
@@ -142,8 +143,8 @@ else{
 
 
 require_once('battleClasses.php');
-$boardController = new BoardContoller();
-$strikeMoveController = new StrikeMoveController();
+//$boardController = new BoardContoller();
+//$strikeMoveController = new StrikeMoveController();
 
 if ($both_set) {
   if ($new_move == false)
@@ -216,18 +217,47 @@ if ($both_set) {
         // status;
         // 2, 0, poses, 2b
         if (isset($_POST['strike'])){
-          if (strike())
-          {
-            set_winner();
-            //status;
-            send_response(array("winner" => $login));
-          }
-          else
-          {
-            $last_strike = strtotime(get_ls_nm($id)["last_strike"]);
-            $timer = $last_strike + $accept_time - time();
-            send_response(array("stage" => "accept new move", "my_move" => false, "timer" => $timer));
-          }
+            //BAD CODE
+            $time_now = date($time_format, time());
+            $query = "update strikes_new_moves set last_strike = '$time_now' where id = $id";
+            $statement = $db->prepare($query);
+            $statement->execute();
+            $statement->closeCursor();
+
+            $query = "update curr_move set login = '$enemy_login' where id = $id";
+            $statement = $db->prepare($query);
+            $statement->execute();
+            $statement->closeCursor();
+  
+            $login_save = $login;
+            $login = $enemy_login;
+            
+            $login_isset = $enemy_isset;
+            $my_position_str = $enemy_position_str;
+            
+            $boardController = new BoardContoller();
+            $strikeMoveController = new StrikeMoveController();
+            
+            if ($strikeMoveController->strike())
+            {
+                $login = $login_save;
+                set_winner();
+                //status;
+                send_response(array("winner" => $login));
+            }
+            else
+            {
+                $login = $login_save;
+                
+                $query = "update curr_move set login = '$enemy_login' where id = $id";
+                $statement = $db->prepare($query);
+                $statement->execute();
+                $statement->closeCursor();
+                
+                $last_strike = strtotime(get_ls_nm($id)["last_strike"]);
+                $timer = $last_strike + $accept_time - time();
+                send_response(array("stage" => "accept new move", "my_move" => false, "timer" => $timer));
+            }
         }
         else
         {
@@ -267,7 +297,11 @@ else {
   }
   else
   {
-    if (set_position($_POST["set_position"]))
+
+    $boardController = new BoardContoller();
+    $strikeMoveController = new StrikeMoveController();
+    
+    if ($strikeMoveController->set_position())
     {
       $timer = $battle_start + $set_time - time();
       $my_board = get_login_board($login, $id);

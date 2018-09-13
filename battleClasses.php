@@ -5,32 +5,35 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
+require_once('consts.php');
 class BoardContoller{
-    public function __construct($login, $id)//*
+    public function __construct()//*
     {
-      global $db;
+        global $db;
+        global $login;
+        global $id;
 
-      $query = "SELECT board from battle_positions where login = :login and id = :id";
-      $statement = $db->prepare($query);
-      $statement->bindValue(':login', $login);
-      $statement->bindValue(':id', $id);
-      $statement->execute();
+        $query = "SELECT board from battle_positions where login = :login and id = :id";
+        $statement = $db->prepare($query);
+        $statement->bindValue(':login', $login);
+        $statement->bindValue(':id', $id);
+        $statement->execute();
 
-      $board_str = $statement->fetch()['board'];
-      
-      if ($board_str){
-          $this->board = [];
-          for ($i = 0; $i < BOARD_SIZE; $i++){
-              $this->board[] = [];
-              for ($j = 0;  $j < BOARD_SIZE; $j++){
+        $board_str = $statement->fetch()['board'];
+
+
+        $this->board = [];
+        for ($i = 0; $i < BOARD_SIZE; $i++){
+            $this->board[] = [];
+            for ($j = 0;  $j < BOARD_SIZE; $j++){
+                if ($board_str)
                   $this->board[$i][$j] = $board_str[$i * BOARD_SIZE + $j];
-              }
-          }
-      }
-      else{
-          $board = null;
-      }
+                else
+                  $this->board[$i][$j] = 0;
+            }
+        }
+   
+
     }
 
     public function setBoardCell($x, $y, $value){
@@ -46,7 +49,7 @@ class BoardContoller{
         global $db;
         global $login;
         global $id;
-        $query = "update battle_positions set board=$board_str where id=$id and login=$login";
+        $query = "update battle_positions set board='$board_str' where id=$id and login='$login'";
         $statement = $db->prepare($query);
         $statement->execute();
         $statement->closeCursor();
@@ -56,7 +59,7 @@ class BoardContoller{
         global $db;
         global $login;
         global $id;
-        $query = "update battle_positions set board=NULL where id=$id and login=$login";
+        $query = "update battle_positions set board=NULL where id=$id and login='$login'";
         $statement = $db->prepare($query);
         $statement->execute();
         $statement->closeCursor();  
@@ -73,12 +76,12 @@ class StrikeMoveController
         global $login_isset;
         $this->set = $login_isset;
 
-
-        for ($i = 0; $i < BOARD_SIZE; $i)
+        $this->ship_refs_board = [];
+        for ($i = 0; $i < BOARD_SIZE; $i++)
         {
             $this->ship_refs_board[] = [];
             for ($j = 0; $j < BOARD_SIZE; $j++)
-                $this->ship_refs_board[i][] = null;
+                $this->ship_refs_board[$i][] = null;
         }
         global $my_position_str;
         foreach ($my_position_str as $ship_position){
@@ -97,17 +100,17 @@ class StrikeMoveController
 
         foreach ($positions as $position)
         {
-            $x = $position['x'];
-            $y = $position['y'];
-            $len = $position['len'];
-            $direction = $position['direction'];
+            $x = (int)$position['x'];
+            $y = (int)$position['y'];
+            $len = (int)$position['len'];
+            $direction = (int)$position['direction'];
             //need to filter 'em
 
             for ($cell = 0; $cell < $len; $cell++)
             {
-                if ($this->boardController->board[x][y] != OPENED_WATER){
+                if ($this->boardController->board[$x][$y] != OPENED_WATER){
                     //make board null again
-
+                    $this->boardController->setBoardNull();
                     return false;
                 }
                 $this->boardController->setBoardCell($x, $y, SHIP_PART);
@@ -121,12 +124,29 @@ class StrikeMoveController
 
             $this->ships[] = new Ship($position, $this);//change board & ship_refs
         }
-
+        
+        $lens_counter = [];
+        for ($i = 1; $i <= LENS_AMOUNT; $i++)
+            $lens_counter[$i] = 0;
+        
+        $lens_required = array(null, ONE_AMOUNT, TWO_AMOUNT, THREE_AMOUNT, FOUR_AMOUNT);
+        
+        foreach ($this->ships as $ship){
+            $lens_counter[$ship->position['len']]++;
+        }
+        
+        for ($i = 1; $i <= LENS_AMOUNT; $i++){
+            if ($lens_required[$i] != $lens_counter[$i]){
+                $this->boardController->setBoardNull();
+                return false;
+            }
+        }
+        
         global $db;
         global $login;
         global $id;
         $positions = json_encode($positions);
-        $query = "update positions_str set position=$positions where id=$id and login=$login";
+        $query = "update positions_str set position='$positions' where id=$id and login='$login'";
         $statement = $db->prepare($query);
         $statement->execute();
         $statement->closeCursor();
@@ -136,19 +156,21 @@ class StrikeMoveController
   
     public function strike()
     {
-        $x = $_POST['strike']['x'];
-        $y = $_POST['strike']['y'];
+        $x = (int)$_POST['strike']['x'];
+        $y = (int)$_POST['strike']['y'];
         //filter 'em
 
         $ship = $this->ship_refs_board[$x][$y];
         if (isset($ship)){
             $ship->take_strike($x, $y);//here change board
-            foreach ($this->ships as $ship)
+            
+            foreach ($this->ships as $ship_checking)
             {
-                if (!$ship->sank()){
+                if (!$ship_checking->sank()){
                     return false;
                 }
             }
+            return true;
         }
         else{
             $this->boardController->setBoardCell($x, $y, MISS);
@@ -159,7 +181,7 @@ class StrikeMoveController
     //public $board;
     public $boardController;
     public $ship_refs_board;
-    private $ships;
+    public $ships;
     //private $login;
     public $set;
 }
@@ -172,14 +194,14 @@ class Ship{
         
         
         $set = $this->strike_move_controller->set;
-        $x = $position['x'];
-        $y = $position['y'];
-        $len = $position['len'];
-        $direction = $position['direction'];
+        $x = (int)$position['x'];
+        $y = (int)$position['y'];
+        $len = (int)$position['len'];
+        $direction = (int)$position['direction'];
 
         for ($cell = 0; $cell < $len; $cell++)
         {
-            $this->strike_move_controller->ship_refs_board[x][y] = $this;
+            $this->strike_move_controller->ship_refs_board[$x][$y] = $this;
             if ($direction == RIGHT){
                 $x++;
             }
@@ -190,8 +212,8 @@ class Ship{
         
         if (!$set)
         {
-            $x = $position['x'];
-            $y = $position['y'];
+            $x = (int)$position['x'];
+            $y = (int)$position['y'];
             for ($cell = 0; $cell < $len; $cell++){
                 $this->boardController->setBoardCell($x, $y, SHIP_PART);
                 
@@ -217,8 +239,8 @@ class Ship{
             }
         }
         
-        $x = $position['x'];
-        $y = $position['y'];
+        $x = (int)$position['x'];
+        $y = (int)$position['y'];
         $this->cells = [];
         for ($cell = 0; $cell < $len; $cell++)
         {
@@ -235,10 +257,11 @@ class Ship{
     public function take_strike($x, $y){
         if ($this->boardController->board[$x][$y] == SHIP_PART){
             $this->boardController->setBoardCell($x, $y, HIT); 
-            foreach ($this->cells as $cell)
+            foreach ($this->cells as $key => $cell)
             {
                 if ($cell['x'] == $x && $cell['y'] == $y){
-                    $cell['status'] = HIT;
+                    //$cell['status'] = HIT;
+                    $this->cells[$key]['status'] = HIT;
                     break;  
                 }
             }
@@ -248,6 +271,7 @@ class Ship{
                 $y = $this->position['y'];
                 $len = $this->position['len'];
                 $direction = $this->position['direction'];
+                
                 for ($cell = 0; $cell < $len; $cell++){
                     $this->boardController->setBoardCell($x, $y, DEAD_SHIP);
 
@@ -285,10 +309,10 @@ class Ship{
         return true;
     }
     
-    private $strike_move_controller;
-    private $boardController;
-    private $position;
-    private $cells;
+    public $strike_move_controller;
+    public $boardController;
+    public $position;
+    public $cells;
 }
 
 

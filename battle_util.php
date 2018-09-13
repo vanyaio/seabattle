@@ -83,7 +83,7 @@ function get_positions_str($login, $id)//*
 {
   global $db;
 
-  $query = "SELECT position from battle_positions where login = :login and id = :id";
+  $query = "SELECT position from positions_str where login = :login and id = :id";
   $statement = $db->prepare($query);
   $statement->bindValue(':login', $login);
   $statement->bindValue(':id', $id);
@@ -223,7 +223,16 @@ function start_battle(){//ADD POSITIONS_STR
   $statement1 = $db->prepare($query1);
   $res1 = $statement1->execute();
   $statement1->closeCursor();
+  
+  $query_0 = "insert into positions_str (id, login) values ($id, 'ya0')";
+  $statement_0 = $db->prepare($query_0);
+  $res_0 = $statement_0->execute();
+  $statement_0->closeCursor();
 
+  $query_1 = "insert into positions_str (id, login) values ($id, 'ya1')";
+  $statement_1 = $db->prepare($query_1);
+  $res_1 = $statement_1->execute();
+  $statement_1->closeCursor();
 
   $battle_start = date($time_format, time());
   $query2 = "insert into battle_start values ($id, '$battle_start')";
