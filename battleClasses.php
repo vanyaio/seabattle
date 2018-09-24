@@ -90,7 +90,7 @@ class StrikeMoveController
         }
     }
 
-    public function set_position()//CHECK FOR SHIPS QUANTITY
+    public function set_position()
     {
         $positions = filter_input(INPUT_POST, 'set_position', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY);
         if (!isset($positions) || $positions == false)

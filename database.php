@@ -9,8 +9,51 @@
         $error_message = $e->getMessage();
         exit();
     }
+    
+    $db_obj = new Database($dsn, $username, $password);
+    class Database{
+        public function __construct($dsn, $username, $password) {
+            try {
+                $this->db = new PDO($dsn, $username, $password);
+            } catch (PDOException $e) {
+                $error_message = $e->getMessage();
+                exit();
+            }
+        }
+        
+        private function generateQuery($query, $bind_vals){
+            $statement = $this->db->prepare($query);
+            
+            for ($i = 0; $i < count($bind_vals); $i += 2){
+                $statement->bindValue($bind_vals[$i], $bind_vals[$i + 1]);
+            }     
 
+            $statement->execute();
+            return $statement->fetch();
+        }
+        
+        public function select($cols, $from, $where, ...$bind_vals)
+        {
+            $query = "SELECT " . $cols . " FROM " . $from . " WHERE " . $where;  
+            return $this->generateQuery($query, $bind_vals);
+        }
+        
+        public function insert($into, $vals_str, $vals, ...$bind_vals){
+            $query = "INSERT INTO " . $into . " " . $vals_str . " VALUES " . $vals;
+            return $this->generateQuery($query, $bind_vals);
+        }
+        
+        public function update($table, $set, $where, ...$bind_vals){
+            $query = "UPDATE " . $table . " SET " . $set . " WHERE " . $where;
+            return $this->generateQuery($query, $bind_vals);
+        }
 
+        public function delete($table, $where, ...$bind_vals){
+            $query = "DELETE FROM " . $table . " WHERE " .$where;
+            return $this->generateQuery($query, $bind_vals);
+        }
+        public $db;
+    }
     //move to util???
     function check_login_password($login, $password)
     {
