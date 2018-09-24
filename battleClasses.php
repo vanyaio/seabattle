@@ -225,7 +225,7 @@ class Ship{
                         $ys = $y + $j;
                         
                         if ($this->strike_move_controller->ship_refs_board[$xs][$ys] == null)
-                            $this->boardController->setBoardCell($xs, $ys, OPENED_WATER);
+                            $this->boardController->setBoardCell($xs, $ys, CLOSED_WATER);
                     }
                 }
                 

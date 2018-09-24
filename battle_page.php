@@ -21,8 +21,8 @@
             {
               "battle_page_loaded": true,
               "set_position": [
-                  {'x': 3, 'y': 3, 'len': 1, 'direction': 1},
-                  {'x': 5, 'y': 5, 'len': 2, 'direction': 1}
+                  {'x': 5, 'y': 5, 'len': 1, 'direction': 1},
+                  {'x': 0, 'y': 0, 'len': 2, 'direction': 1}
               ]
             },
             function(data, status){

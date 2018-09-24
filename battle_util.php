@@ -133,8 +133,13 @@ function battle_start($id){
 function send_response($response_array){
   global $my_board;
   global $enemy_board;
-  $response_array["my_board"] = $my_board;//get my board()
-  $response_array["enemy_board"] = $enemy_board;//same
+  global $login;
+  global $enemy_login;
+  global $id;
+  //$response_array["my_board"] = $my_board;//get my board()
+  $response_array["my_board"] = get_login_board($login, $id);
+  //$response_array["enemy_board"] = $enemy_board;//same
+  $response_array["enemy_board"] = get_login_board($enemy_login, $id);
   echo json_encode($response_array);
   die();
 }
