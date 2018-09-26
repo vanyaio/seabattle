@@ -68,7 +68,7 @@ $both_set_time = get_both_set_time();
 $set_time = 120;
 $req_time = 120;
 $accept_time = 120;
-$move_time = 600;
+$move_time = 120;
 //need to make func set_left_by_both
 if (!$both_set){
   if (!$login_isset && (time() > ($battle_start + $set_time))) {

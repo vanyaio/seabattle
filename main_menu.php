@@ -19,29 +19,85 @@
     <br>
 
     <form  action="." method="post">
-      <input type="hidden" name="logout" value="true">
+<!--      <input type="hidden" name="logout" value="true">-->
       <input type="submit" value="log out">
     </form>
 
     <br>
     
-    <div id="search" onclick="search()">
+    <div onclick="start_search()">
         SEARCH
     </div>
-    <div id="search_status" onclick="get_search_status()">
+    <div onclick="get_search_status()">
         STATUS
     </div>
-    <div id="stop_search" onclick="stop_search()">
+    <div onclick="stop_search()">
         STOP 
     </div>
     
-<!--    <form  action="battle.php" method="post">
+
+    <form  action="battle.php" method="post">
       <input type="hidden" name="start_battle" value="true">
       <input type="submit" value="BATTLE">
-    </form>-->
+    </form>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js" charset="utf-8"></script>
     <script>
-        
+        function start_search() {
+            $.post(
+                "search.php",
+                {
+                    "start_search" : true
+                },
+                function(data, status){
+                    alert(data);
+                }
+            )
+        }
+        function get_search_status() {
+            $.post(
+                "search.php",
+                {
+                    "get_search_status" : true
+                },
+                function(data, status){
+                    alert(data);
+                }
+            )
+        }
+
+        function stop_search() {
+            $.post(
+                "search.php",
+                {
+                    "stop_search" : true
+                },
+                function(data, status){
+                    alert(data);
+                }
+        )
+        }
     </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

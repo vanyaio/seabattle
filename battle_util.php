@@ -288,7 +288,7 @@ function set_both_set_time(){
 //temp
 
 
-function start_battle(){
+function start_battle($login0, $login1){
 //  global $db;
     global $db_obj;
     global $time_format;
@@ -298,34 +298,39 @@ function start_battle(){
 //  $statement->execute();
 //  $statement->closeCursor();
     
-    $db_obj->insert("battle_logins", "(login0, login1)", "('ya0','ya1')");
+    $db_obj->insert("battle_logins", "(login0, login1)", "(:login0, :login1)",
+        "login0", $login0, "login1", $login1);
     
-    $id = get_battle_id('ya0');
+    $id = get_battle_id($login0);
 
 //    $query0 = "insert into battle_positions (id, login) values ($id, 'ya0')";
 //    $statement0 = $db->prepare($query0);
 //    $res0 = $statement0->execute();
 //    $statement0->closeCursor();
     
-    $db_obj->insert("battle_positions", "(id, login)", "($id, 'ya0')");
+    $db_obj->insert("battle_positions", "(id, login)", "($id, :login0)",
+        ":login0", $login0);
     
 //    $query1 = "insert into battle_positions (id, login) values ($id, 'ya1')";
 //    $statement1 = $db->prepare($query1);
 //    $res1 = $statement1->execute();
 //    $statement1->closeCursor();
-    $db_obj->insert("battle_positions", "(id, login)", "($id, 'ya1')");
+    $db_obj->insert("battle_positions", "(id, login)", "($id, :login1)",
+        ":login1", $login1);
     
 //    $query_0 = "insert into positions_str (id, login) values ($id, 'ya0')";
 //    $statement_0 = $db->prepare($query_0);
 //    $res_0 = $statement_0->execute();
 //    $statement_0->closeCursor();
-    $db_obj->insert("positions_str", "(id, login)", "($id, 'ya0')");
+    $db_obj->insert("positions_str", "(id, login)", "($id, :login0)",
+        ":login0", $login0);
     
 //    $query_1 = "insert into positions_str (id, login) values ($id, 'ya1')";
 //    $statement_1 = $db->prepare($query_1);
 //    $res_1 = $statement_1->execute();
 //    $statement_1->closeCursor();
-    $db_obj->insert("positions_str", "(id, login)", "($id, 'ya1')");
+    $db_obj->insert("positions_str", "(id, login)", "($id, :login1)",
+        ":login1", $login1);
     
     $battle_start = date($time_format, time());
 //    $query2 = "insert into battle_start values ($id, '$battle_start')";
@@ -344,7 +349,8 @@ function start_battle(){
 //    $statement4 = $db->prepare($query4);
 //    $statement4->execute();
 //    $statement4->closeCursor();
-    $db_obj->insert("curr_move", "", "($id, 'ya0')");
+    $db_obj->insert("curr_move", "", "($id, :login0)",
+        ":login0", $login0);
     
 //    $query5 = "insert into strikes_new_moves (id) values ($id)";
 //    $statement5 = $db->prepare($query5);

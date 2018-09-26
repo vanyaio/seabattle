@@ -1,7 +1,7 @@
 <?php
     $dsn = 'mysql:host=localhost;dbname=seabattle';
     $username = 'root';
-    $password = '837083';
+    $password = '837083vv';
 
     try {
         $db = new PDO($dsn, $username, $password);
@@ -21,7 +21,7 @@
             }
         }
         
-        private function generateQuery($query, $bind_vals){
+        private function generateQuery($query, $bind_vals = null){
             $statement = $this->db->prepare($query);
             
             for ($i = 0; $i < count($bind_vals); $i += 2){
@@ -50,6 +50,10 @@
 
         public function delete($table, $where, ...$bind_vals){
             $query = "DELETE FROM " . $table . " WHERE " .$where;
+            return $this->generateQuery($query, $bind_vals);
+        }
+
+        public function hardQuery($query, ...$bind_vals){
             return $this->generateQuery($query, $bind_vals);
         }
         public $db;
